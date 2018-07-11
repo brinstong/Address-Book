@@ -1,5 +1,3 @@
-import javax.naming.InsufficientResourcesException;
-
 public class Contact {
 
     // name is a unique identifier
@@ -9,11 +7,10 @@ public class Contact {
     private String address;
 
 
-    Contact(String name) throws InsufficientResourcesException {
+    Contact(String name) {
 
         if (name == null || name.isEmpty()) {
-            throw new InsufficientResourcesException("Name should not be empty");
-            // TODO How else to handle
+            throw new IllegalArgumentException("Name should not be empty");
         }
 
         this.name = name;

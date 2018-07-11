@@ -1,4 +1,3 @@
-import javax.naming.InsufficientResourcesException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,33 +18,36 @@ public class ContactService {
         // initializing with default values;
 
         contacts = new ArrayList<>();
-        try {
-
-            contacts.add(new Contact("abc"));
-            contacts.add(new Contact("def"));
-            contacts.add(new Contact("ghi"));
-            contacts.add(new Contact("jkl"));
-            contacts.add(new Contact("mno"));
-
-        } catch (InsufficientResourcesException e) {
-            e.printStackTrace();
-        }
+        contacts.add(new Contact("abc"));
+        contacts.add(new Contact("def"));
+        contacts.add(new Contact("ghi"));
+        contacts.add(new Contact("jkl"));
+        contacts.add(new Contact("mno"));
 
 
     }
 
 
-    public List<Contact> getAllContacts(int pageSize, int page) {
+    public List<Contact> getAllContacts(int pageSize, int page, String queryString) {
 
-        // TODO : utilize parameters
-
-        return contacts;
+        // assuming start page is 1
+        /*
+        page_size = 10
+        page  pages
+        1     00 - 09
+        2     10 - 19
+        3     20 - 29
+        */
+        int startIndex = pageSize * (page -1);
+        // end index is exclusive
+        int endIndex = pageSize * page;
+        return getAllContacts(queryString).subList(startIndex,endIndex);
 
     }
 
     public List<Contact> getAllContacts(String queryStringQuery) {
 
-        // TODO
+        // TODO : fetch all from Elastic
 
         return contacts;
 
@@ -65,17 +67,11 @@ public class ContactService {
     }
 
     public boolean createContact(String name, Map<String, String> params) {
-        // TODO : check what all parameters are required to create a Contact
 
+        if (getContact(name) == null) {
 
-        Contact contact = null;
-        try {
+            Contact contact = null;
             contact = new Contact(name);
-        } catch (InsufficientResourcesException e) {
-            e.printStackTrace();
-        }
-
-        if (contact != null) {
 
             if (params.containsKey("email")) {
                 contact.setEmail(params.get("email"));
@@ -93,9 +89,11 @@ public class ContactService {
             contacts.add(contact);
 
             return true;
+
         }
 
         return false;
+
     }
 
     public boolean updateContact(Map<String, String> params) {

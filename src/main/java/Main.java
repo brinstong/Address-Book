@@ -1,5 +1,6 @@
 import spark.Request;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -7,25 +8,26 @@ import static spark.Spark.*;
 
 public class Main {
 
-    // TODO make query params Constant
 
 
     final static int PORT = 8080;
+    final static String NAME_QUERY_IDENTIFIER = ":name";
+    final static String CONTACT_ENDPOINT_IDENTIFIER = "contact";
 
     public static void main(String arg[]) {
 
         port(PORT);
-        get("/contact", "application/json",(req, res) -> getAllContacts(req));
-        post("/contact","application/json",(req, res) -> createContact(req));
-        get("/contact/:name", "application/json", (req,res) -> getContact(req));
-        put("/contact/:name", "application/json", (req,res) -> updateContact(req));
-        delete("/contact/:name", "application/json", (req, res) -> deleteContact(req));
+        get("/"+CONTACT_ENDPOINT_IDENTIFIER, "application/json",(req, res) -> getAllContacts(req));
+        post("/"+CONTACT_ENDPOINT_IDENTIFIER,"application/json",(req, res) -> createContact(req));
+        get("/"+CONTACT_ENDPOINT_IDENTIFIER+"/"+ NAME_QUERY_IDENTIFIER, "application/json", (req, res) -> getContact(req));
+        put("/"+CONTACT_ENDPOINT_IDENTIFIER+"/"+ NAME_QUERY_IDENTIFIER, "application/json", (req, res) -> updateContact(req));
+        delete("/"+CONTACT_ENDPOINT_IDENTIFIER+"/"+ NAME_QUERY_IDENTIFIER, "application/json", (req, res) -> deleteContact(req));
 
     }
 
     private static String deleteContact(Request req) {
 
-        String name = req.params(":name");
+        String name = req.params(NAME_QUERY_IDENTIFIER);
 
         String contactInfo = "Deleting info for "+name+" !! ";
 
@@ -55,7 +57,7 @@ public class Main {
 
     private static String getContact(Request req) {
 
-        String name = req.params(":name");
+        String name = req.params(NAME_QUERY_IDENTIFIER);
 
         String contactInfo = "Displaying info for "+name;
 
@@ -87,67 +89,72 @@ public class Main {
         int pageNumber = -1;
         String queryStringQuery = "";
 
+        Set<String> queryParams = req.queryParams();
+
         try {
-            Set<String> queryParams = req.queryParams();
+//            if (queryParams.contains("pageSize"))
+                pageSize = Integer.parseInt(req.queryParams("pageSize"));
 
-            try {
-                if (queryParams.contains("pageSize"))
-                    pageSize = Integer.parseInt(req.queryParams("pageSize"));
-
-            } catch (NumberFormatException nfe) {
-                // TODO
-            }
-
-            try {
-                if (queryParams.contains("page"))
-                    pageNumber = Integer.parseInt(req.queryParams("page"));
-
-            } catch (NumberFormatException nfe) {
-                // TODO
-            }
-
-            try {
-                if (queryParams.contains("query"))
-                    queryStringQuery = req.queryParams("query");
-
-            } catch (NumberFormatException nfe) {
-                // TODO
-            }
-
-
-        }
-        catch (Exception e) {
-            // TODO
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Invalid Page Size");
         }
 
+        try {
+//            if (queryParams.contains("page"))
+                pageNumber = Integer.parseInt(req.queryParams("page"));
+
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Invalid Page Value");
+        }
+
+        try {
+//            if (queryParams.contains("query"))
+                queryStringQuery = req.queryParams("query");
+
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Invalid Query");
+        }
+
+
+        List<Contact> contacts;
+
+        /*
 
         if (!queryStringQuery.isEmpty()) {
 
-            // TODO
+            // call the function in elastic class via Service
 
-            return null;
+            contacts = ContactService.getInstance().getAllContacts(queryStringQuery)
+
         }
         else {
 
 
-            StringBuilder output = new StringBuilder("");
 
-            ContactService.getInstance().getAllContacts(pageSize, pageNumber)
-                    .forEach(x -> {
-                        output.append(x.getName());
-                        output.append("\n\n\n");
-                    });
+            contacts = ContactService.getInstance().getAllContacts(pageSize, pageNumber);
 
-
-            output.append(pageSize);
-            output.append("\n\n\n");
-            output.append(pageNumber);
-            output.append("\n\n\n");
-            output.append(queryStringQuery);
-            output.append("\n\n\n");
-
-
-            return output.toString();
         }
+*/
+
+        contacts = ContactService.getInstance().getAllContacts(pageSize, pageNumber, queryStringQuery);
+
+
+        StringBuilder output = new StringBuilder("");
+        contacts.forEach(x -> {
+            output.append(x.getName());
+            output.append("\n\n\n");
+        });
+
+
+        output.append(pageSize);
+        output.append("\n\n\n");
+        output.append(pageNumber);
+        output.append("\n\n\n");
+        output.append(queryStringQuery);
+        output.append("\n\n\n");
+
+
+        return output.toString();
+
     }
 }
