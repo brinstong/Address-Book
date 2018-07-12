@@ -1,5 +1,6 @@
 import spark.Request;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class Main {
 
         String name = req.params(NAME_QUERY_IDENTIFIER);
 
-        String contactInfo = "Deleting info for "+name+" !! ";
+        String contactInfo = "Deleting info for "+name+" was ";
 
         boolean success = ContactService.getInstance().deleteContact(name);
 
@@ -42,10 +43,16 @@ public class Main {
     private static Object updateContact(Request req) {
 
 
-        Map<String, String> params = req.params();
+        Map<String, String> params = new HashMap<>();
+
+        for (String key : req.queryParams()) {
+            params.put(key, req.queryParams(key));
+        }
+
+        params.put("name",req.params("name"));
 
 
-        String contactInfo = "Updating info for "+params.get("name")+" !! ";
+        String contactInfo = "Updating info for "+req.params("name")+" was ";
 
         boolean success = ContactService.getInstance().updateContact(params);
 
@@ -70,7 +77,17 @@ public class Main {
 
     private static String createContact(Request req) {
 
-        Map<String, String> params = req.params();
+//        System.out.println("In Create " +req.params("name"));
+
+//        Map<String, String> params = req.params();
+
+
+        Map<String, String> params = new HashMap<>();
+
+        for (String key : req.queryParams()) {
+            params.put(key, req.queryParams(key));
+        }
+
 
         String name = params.get("name");
 
@@ -141,17 +158,17 @@ public class Main {
 
         StringBuilder output = new StringBuilder("");
         contacts.forEach(x -> {
-            output.append(x.getName());
+            output.append(x.toString());
             output.append("\n\n\n");
         });
 
 
-        output.append(pageSize);
-        output.append("\n\n\n");
-        output.append(pageNumber);
-        output.append("\n\n\n");
-        output.append(queryStringQuery);
-        output.append("\n\n\n");
+//        output.append(pageSize);
+//        output.append("\n\n\n");
+//        output.append(pageNumber);
+//        output.append("\n\n\n");
+//        output.append(queryStringQuery);
+//        output.append("\n\n\n");
 
 
         return output.toString();

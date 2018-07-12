@@ -38,9 +38,14 @@ public class ContactService {
         2     10 - 19
         3     20 - 29
         */
-        int startIndex = pageSize * (page -1);
+
+        /*
+        This always returns the last page if the pageNumber exceeds the total pages available.
+         */
+
+        int startIndex = Math.min(pageSize * (page -1), contacts.size() - (contacts.size() % pageSize));
         // end index is exclusive
-        int endIndex = pageSize * page;
+        int endIndex = Math.min(pageSize * page, contacts.size());
         return getAllContacts(queryString).subList(startIndex,endIndex);
 
     }
@@ -109,7 +114,9 @@ public class ContactService {
             }
 
             if (params.containsKey("contactNumber")) {
-                contact.setEmail(params.get("contactNumber"));
+                if (!contact.setContactNumber(params.get("contactNumber"))) {
+                    return false;
+                }
             }
 
             if (params.containsKey("address")) {
