@@ -11,13 +11,13 @@ public class Main {
 
 
 
-    final static int PORT = 8080;
+    final static int PORT_SPARK = 8080;
     final static String NAME_QUERY_IDENTIFIER = ":name";
     final static String CONTACT_ENDPOINT_IDENTIFIER = "contact";
 
     public static void main(String arg[]) {
 
-        port(PORT);
+        port(PORT_SPARK);
         get("/"+CONTACT_ENDPOINT_IDENTIFIER, "application/json",(req, res) -> getAllContacts(req));
         post("/"+CONTACT_ENDPOINT_IDENTIFIER,"application/json",(req, res) -> createContact(req));
         get("/"+CONTACT_ENDPOINT_IDENTIFIER+"/"+ NAME_QUERY_IDENTIFIER, "application/json", (req, res) -> getContact(req));
@@ -62,15 +62,16 @@ public class Main {
 
     }
 
-    private static String getContact(Request req) {
+    private static Map<String, Object> getContact(Request req) {
 
         String name = req.params(NAME_QUERY_IDENTIFIER);
 
-        String contactInfo = "Displaying info for "+name;
+//        String contactInfo = "Displaying info for "+name;
 
-        Contact contact = ContactService.getInstance().getContact(name);
+        Map<String, Object> contact = ContactService.getInstance().getContact(name);
 
-        return contactInfo + contact.toString();
+
+        return contact;
 
 
     }
@@ -100,7 +101,7 @@ public class Main {
         return contactInfo;
     }
 
-    private static String getAllContacts(Request req) {
+    private static List<String> getAllContacts(Request req) {
 
         int pageSize = -1;
         int pageNumber = -1;
@@ -129,11 +130,11 @@ public class Main {
                 queryStringQuery = req.queryParams("query");
 
         } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException("Invalid Query");
+            queryStringQuery = null;
         }
 
 
-        List<Contact> contacts;
+//        List<Contact> contacts;
 
         /*
 
@@ -153,14 +154,14 @@ public class Main {
         }
 */
 
-        contacts = ContactService.getInstance().getAllContacts(pageSize, pageNumber, queryStringQuery);
+        return ContactService.getInstance().getAllContacts(pageSize, pageNumber, queryStringQuery);
 
 
-        StringBuilder output = new StringBuilder("");
-        contacts.forEach(x -> {
-            output.append(x.toString());
-            output.append("\n\n\n");
-        });
+//        StringBuilder output = new StringBuilder("");
+//        contacts.forEach(x -> {
+//            output.append(x.toString());
+//            output.append("\n\n\n");
+//        });
 
 
 //        output.append(pageSize);
@@ -171,7 +172,7 @@ public class Main {
 //        output.append("\n\n\n");
 
 
-        return output.toString();
+//        return output.toString();
 
     }
 }
