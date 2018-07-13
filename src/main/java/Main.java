@@ -1,4 +1,5 @@
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 
 import java.util.HashMap;
@@ -23,10 +24,11 @@ public class Main {
     final static int PORT_SPARK = 8080;
     final static String NAME_QUERY_IDENTIFIER = ":name";
     final static String CONTACT_ENDPOINT_IDENTIFIER = "contact";
-    final static Logger logger = Logger.getLogger(Main.class);
+    final static Logger logger = LoggerFactory.getLogger(Main.class);
 
 
     public static void main(String arg[]) {
+
 
         // set port number to run spark on
         port(PORT_SPARK);

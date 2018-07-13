@@ -1,6 +1,5 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -17,6 +16,7 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -39,7 +39,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class ContactService {
 
-    final static Logger logger = Logger.getLogger(ContactService.class);
+    final static org.slf4j.Logger logger = LoggerFactory.getLogger(ContactService.class);
     static final String indexName = "addressbook";
     static final String typeName = "contact";
     static final String nameKey = "name";
