@@ -1,3 +1,4 @@
+import org.apache.log4j.Logger;
 import spark.Request;
 
 import java.util.HashMap;
@@ -7,6 +8,16 @@ import java.util.Set;
 
 import static spark.Spark.*;
 
+/**
+ *
+ * This class is the entry point to the application.
+ *
+ * This class interacts with the Spark framework and sets the mapping for REST calls.
+ *
+ * This class also interacts with the ContactService class in order to fetch data from
+ * ElastoicSearch DataStore.
+ */
+
 public class Main {
 
 
@@ -14,10 +25,15 @@ public class Main {
     final static int PORT_SPARK = 8080;
     final static String NAME_QUERY_IDENTIFIER = ":name";
     final static String CONTACT_ENDPOINT_IDENTIFIER = "contact";
+    final static Logger logger = Logger.getLogger(Main.class);
+
 
     public static void main(String arg[]) {
 
+        // set port number to run spark on
         port(PORT_SPARK);
+
+        // set mappings for rest calls
         get("/"+CONTACT_ENDPOINT_IDENTIFIER, "application/json",(req, res) -> getAllContacts(req));
         post("/"+CONTACT_ENDPOINT_IDENTIFIER,"application/json",(req, res) -> createContact(req));
         get("/"+CONTACT_ENDPOINT_IDENTIFIER+"/"+ NAME_QUERY_IDENTIFIER, "application/json", (req, res) -> getContact(req));
@@ -26,6 +42,7 @@ public class Main {
 
     }
 
+    // function to delete a contact
     private static String deleteContact(Request req) {
 
         String name = req.params(NAME_QUERY_IDENTIFIER);
@@ -36,11 +53,14 @@ public class Main {
 
         contactInfo += success?"Successful" : "Not Successful";
 
+        logger.info(contactInfo);
+
         return contactInfo;
 
     }
 
-    private static Object updateContact(Request req) {
+    // function to update info of existing contact
+    private static String updateContact(Request req) {
 
 
         Map<String, String> params = new HashMap<>();
@@ -58,29 +78,29 @@ public class Main {
 
         contactInfo += success?"Successful" : "Not Successful";
 
+        logger.info(contactInfo);
+
         return contactInfo;
 
     }
 
-    private static Map<String, Object> getContact(Request req) {
+    // function to get info of an existing contact
+    private static Contact getContact(Request req) {
 
         String name = req.params(NAME_QUERY_IDENTIFIER);
 
-//        String contactInfo = "Displaying info for "+name;
+        Contact contact = ContactService.getInstance().getContact(name);
 
-        Map<String, Object> contact = ContactService.getInstance().getContact(name);
 
+        logger.info("Returning from getContact for "+name);
 
         return contact;
 
 
     }
 
+    // function to create new contact
     private static String createContact(Request req) {
-
-//        System.out.println("In Create " +req.params("name"));
-
-//        Map<String, String> params = req.params();
 
 
         Map<String, String> params = new HashMap<>();
@@ -94,85 +114,64 @@ public class Main {
 
         boolean success = ContactService.getInstance().createContact(name, params);
 
-        String contactInfo = "Creating info for "+name;
+        String contactInfo = "Creating info for "+name+" was ";
 
         contactInfo += success?"Successful" : "Not Successful";
+
+        logger.info(contactInfo);
+
 
         return contactInfo;
     }
 
-    private static List<String> getAllContacts(Request req) {
+    // function to get a list of all contacts. Prints as a JsonArray
+    private static List<Contact> getAllContacts(Request req) {
 
-        int pageSize = -1;
-        int pageNumber = -1;
-        String queryStringQuery = "";
+        // default values
+        int pageSize = 10;
+        int pageNumber = 0;
+        String queryStringQuery = null;
 
         Set<String> queryParams = req.queryParams();
 
         try {
-//            if (queryParams.contains("pageSize"))
+            if (queryParams.contains("pageSize")) {
                 pageSize = Integer.parseInt(req.queryParams("pageSize"));
+                logger.info("Setting user defined pageSize : "+pageSize);
+            }
+            else {
+                logger.warn("Using default pageSize : "+pageSize);
+            }
 
         } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException("Invalid Page Size");
+//            throw new IllegalArgumentException("Invalid Page Size");
+            logger.warn("PageSize not correct. Using default");
         }
 
         try {
-//            if (queryParams.contains("page"))
+            if (queryParams.contains("page")) {
                 pageNumber = Integer.parseInt(req.queryParams("page"));
+                logger.info("Setting user defined pageNumber : "+pageNumber);
 
+            }
+            else {
+                logger.warn("Using default pageNumber : "+pageNumber);
+
+            }
         } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException("Invalid Page Value");
-        }
-
-        try {
-//            if (queryParams.contains("query"))
-                queryStringQuery = req.queryParams("query");
-
-        } catch (NumberFormatException nfe) {
-            queryStringQuery = null;
-        }
-
-
-//        List<Contact> contacts;
-
-        /*
-
-        if (!queryStringQuery.isEmpty()) {
-
-            // call the function in elastic class via Service
-
-            contacts = ContactService.getInstance().getAllContacts(queryStringQuery)
+//            throw new IllegalArgumentException("Invalid Page Value");
+            logger.warn("PageNumber not correct. Using default");
 
         }
-        else {
 
 
+        if (queryParams.contains("query"))
+            queryStringQuery = req.queryParams("query");
+        else
+            logger.warn("Query not provided. Using default of match all");
 
-            contacts = ContactService.getInstance().getAllContacts(pageSize, pageNumber);
-
-        }
-*/
 
         return ContactService.getInstance().getAllContacts(pageSize, pageNumber, queryStringQuery);
-
-
-//        StringBuilder output = new StringBuilder("");
-//        contacts.forEach(x -> {
-//            output.append(x.toString());
-//            output.append("\n\n\n");
-//        });
-
-
-//        output.append(pageSize);
-//        output.append("\n\n\n");
-//        output.append(pageNumber);
-//        output.append("\n\n\n");
-//        output.append(queryStringQuery);
-//        output.append("\n\n\n");
-
-
-//        return output.toString();
 
     }
 }
