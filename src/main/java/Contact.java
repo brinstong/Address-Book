@@ -25,23 +25,15 @@ public class Contact {
         this.name = name;
     }
 
+    public static boolean validateContactNumber(String contactNumber) {
+        // return true if contact Number is valid
 
-    public void setAddress(String address) {
-
-        if (address == null || address.isEmpty()) {
-            address = "Not Specified";
+        if (contactNumber.length() != 10) {
+            return false;
         }
 
-        this.address = address;
-    }
+        return contactNumber.chars().allMatch(Character::isDigit);
 
-    public void setEmail(String email) {
-
-        if (email == null || email.isEmpty()) {
-            email = "Not Specified";
-        }
-
-        this.email = email;
     }
 
     public boolean setContactNumber(String contactNumber) {
@@ -55,19 +47,17 @@ public class Contact {
         return true;
     }
 
-    public static boolean validateContactNumber(String contactNumber) {
-        // return true if contact Number is valid
-
-        if (contactNumber.length() != 10) {
-            return false;
-        }
-
-        return contactNumber.chars().allMatch(Character::isDigit);
-
-    }
-
     public String getAddress() {
         return address;
+    }
+
+    public void setAddress(String address) {
+
+        if (address == null || address.isEmpty()) {
+            address = "Not Specified";
+        }
+
+        this.address = address;
     }
 
     public String getContactNumber() {
@@ -82,6 +72,14 @@ public class Contact {
         return email;
     }
 
+    public void setEmail(String email) {
+
+        if (email == null || email.isEmpty()) {
+            email = "Not Specified";
+        }
+
+        this.email = email;
+    }
 
     @Override
     public String toString() {

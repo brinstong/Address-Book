@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -16,7 +17,6 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -31,52 +31,34 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 /**
  * This class acts as the medium of contact for ElasticSearch. This class implements the
  * ElasticSearch Java API for interaction.
- *
+ * <p>
  * This class also utilizes Google GSON library for converting the objects of Contact class
  * to and from JSON. This allows us to store everything in standard Data Structures utilizing
  * the Contact class like List<Contact> and Map<>
- *
- *
  */
 
-public class ContactService{
-
-    private static final int PORT_ELASTIC_TRANSPORT = 9300;
-    private static final String HOST_ELASTIC = "localhost";
+public class ContactService {
 
     final static Logger logger = Logger.getLogger(ContactService.class);
-
     static final String indexName = "addressbook";
     static final String typeName = "contact";
     static final String nameKey = "name";
     static final String emailKey = "email";
     static final String contactNumberKey = "contactNumber";
     static final String addressKey = "address";
-
-
-
-
-
-    private TransportClient client;
-
-
-    private static ContactService ourInstance = new ContactService();
-
-    public static ContactService getInstance() {
-        return ourInstance;
-    }
-
-
     final static GsonBuilder builder = new GsonBuilder().setPrettyPrinting();
     final static Gson gson = builder.create();
-
+    private static final int PORT_ELASTIC_TRANSPORT = 9300;
+    private static final String HOST_ELASTIC = "localhost";
+    private static ContactService ourInstance = new ContactService();
+    private TransportClient client;
     private ContactService() {
 
 
         try {
             client = new PreBuiltTransportClient(Settings.EMPTY)
                     .addTransportAddress(new TransportAddress(InetAddress.getByName(HOST_ELASTIC), PORT_ELASTIC_TRANSPORT));
-            logger.info("Successfully initialized Client for interacting with ElasticSearch on "+HOST_ELASTIC+":"+PORT_ELASTIC_TRANSPORT);
+            logger.info("Successfully initialized Client for interacting with ElasticSearch on " + HOST_ELASTIC + ":" + PORT_ELASTIC_TRANSPORT);
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -86,6 +68,14 @@ public class ContactService{
 
     }
 
+    public static ContactService getInstance() {
+        return ourInstance;
+    }
+
+    public static String getContactAsJson(Contact contact) {
+
+        return gson.toJson(contact);
+    }
 
     public List<Contact> getAllContacts(int pageSize, int page, String queryString) {
 
@@ -102,14 +92,13 @@ public class ContactService{
                     .setQuery(new QueryStringQueryBuilder(queryString))
                     .setFrom(page * pageSize).setSize(pageSize).setExplain(true)
                     .get();
-        }
-        else {
+        } else {
 
             logger.info("Using default match all Query for search");
 
             response = client.prepareSearch(indexName)
                     .setTypes(typeName)
-                .setQuery(QueryBuilders.matchAllQuery())                 // Query
+                    .setQuery(QueryBuilders.matchAllQuery())                 // Query
                     .setFrom(page * pageSize).setSize(pageSize).setExplain(true)
                     .get();
         }
@@ -123,7 +112,7 @@ public class ContactService{
 
                 String currentRecord = hit.getSourceAsString();
 
-                Contact contact = gson.fromJson(currentRecord,Contact.class);
+                Contact contact = gson.fromJson(currentRecord, Contact.class);
                 contacts.add(contact);
 
             }
@@ -132,27 +121,25 @@ public class ContactService{
             e.printStackTrace();
         }
 
-        logger.info("Returning "+contacts.size()+" records from getAllContacts");
+        logger.info("Returning " + contacts.size() + " records from getAllContacts");
 
         return contacts;
 
     }
 
-
     public Contact getContact(String name) {
 
 
-        GetResponse getResponse = client.prepareGet(indexName, typeName,name).get();
+        GetResponse getResponse = client.prepareGet(indexName, typeName, name).get();
 
         System.out.println(getResponse.getSource());
 
-        Contact contact = gson.fromJson(getResponse.getSourceAsString(),Contact.class);
+        Contact contact = gson.fromJson(getResponse.getSourceAsString(), Contact.class);
 
         if (contact == null) {
-            logger.info("Could not find record for "+name);
-        }
-        else {
-            logger.info("Found Record for "+name+". Returning Object from getContact");
+            logger.info("Could not find record for " + name);
+        } else {
+            logger.info("Found Record for " + name + ". Returning Object from getContact");
         }
 
         return contact;
@@ -173,15 +160,15 @@ public class ContactService{
 
 
                 if (params.containsKey(emailKey)) {
-                    json.field(emailKey,params.get(emailKey));
+                    json.field(emailKey, params.get(emailKey));
                 }
 
                 if (params.containsKey(contactNumberKey)) {
-                    json.field(contactNumberKey,params.get(contactNumberKey));
+                    json.field(contactNumberKey, params.get(contactNumberKey));
                 }
 
                 if (params.containsKey(addressKey)) {
-                    json.field(addressKey,params.get(addressKey));
+                    json.field(addressKey, params.get(addressKey));
                 }
 
                 json.endObject();
@@ -193,8 +180,7 @@ public class ContactService{
                 return true;
 
 
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 logger.info("Contact Creation Not Successful");
 
                 return false;
@@ -217,7 +203,7 @@ public class ContactService{
             json.startObject();
 
             if (params.containsKey(emailKey)) {
-                json.field(emailKey,params.get(emailKey));
+                json.field(emailKey, params.get(emailKey));
                 logger.info("In Update.  Reading email from user");
 
             }
@@ -251,7 +237,6 @@ public class ContactService{
             json.endObject();
 
 
-
             UpdateRequest updateRequest = new UpdateRequest();
             updateRequest.index(indexName)
                     .type(typeName)
@@ -261,7 +246,7 @@ public class ContactService{
 
             UpdateResponse updateResponse = client.update(updateRequest).get();
 
-            System.out.println("Update Response : "+updateResponse.status());
+            System.out.println("Update Response : " + updateResponse.status());
 
             if (updateResponse.status() == RestStatus.OK) {
                 logger.info("Contact Updating Successful");
@@ -287,8 +272,8 @@ public class ContactService{
     public boolean deleteContact(String name) {
 
 
-        DeleteResponse deleteResponse = client.prepareDelete(indexName,typeName,name).get();
-        System.out.println("Delete Response : "+deleteResponse.getResult().toString());
+        DeleteResponse deleteResponse = client.prepareDelete(indexName, typeName, name).get();
+        System.out.println("Delete Response : " + deleteResponse.getResult().toString());
 
 
         if (deleteResponse.getResult() == DocWriteResponse.Result.DELETED) {
@@ -300,17 +285,6 @@ public class ContactService{
         return false;
 
     }
-
-
-
-
-
-    public static String getContactAsJson(Contact contact) {
-
-        return gson.toJson(contact);
-    }
-
-
 
 
 }

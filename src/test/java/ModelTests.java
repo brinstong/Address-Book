@@ -1,9 +1,7 @@
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ModelTests {
 
@@ -17,7 +15,7 @@ public class ModelTests {
 
     @Test
     public void testName() {
-        assertEquals(contact.getName(),"name1");
+        assertEquals(contact.getName(), "name1");
     }
 
     @Test
@@ -26,12 +24,12 @@ public class ModelTests {
         contact.setAddress("address one one");
         contact.setContactNumber("1234567890");
 
-        assertEquals(contact.getEmail(),"one@one.one");
-        assertEquals(contact.getAddress(),"address one one");
-        assertEquals(contact.getContactNumber(),"1234567890");
+        assertEquals(contact.getEmail(), "one@one.one");
+        assertEquals(contact.getAddress(), "address one one");
+        assertEquals(contact.getContactNumber(), "1234567890");
 
 
-        assertEquals(contact.toString(),"{\n" +
+        assertEquals(contact.toString(), "{\n" +
                 "  \"name\": \"name1\",\n" +
                 "  \"email\": \"one@one.one\",\n" +
                 "  \"contactNumber\": \"1234567890\",\n" +
